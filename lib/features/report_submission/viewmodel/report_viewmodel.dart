@@ -164,6 +164,7 @@ class ReportViewModel extends ChangeNotifier {
       disease: selectedDisease!,
       symptoms: symptoms,
       photoPath: photoPath,
+      photoBytes: photoBytes,
       latitude: latitude!,
       longitude: longitude!,
       locationName: locationName,
