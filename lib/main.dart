@@ -4,6 +4,7 @@ import 'core/constants/app_colors.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
 import 'features/auth/views/login_screen.dart';
 import 'features/report_submission/viewmodel/report_viewmodel.dart';
+import 'features/notifications/viewmodel/proximity_viewmodel.dart';
 
 void main() {
   runApp(
@@ -12,6 +13,7 @@ void main() {
         // add each feature's ViewModel here, one line per feature
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => ReportViewModel()),
+        ChangeNotifierProvider(create: (_) => ProximityViewModel()),
       ],
       child: const WthApp(),
     ),

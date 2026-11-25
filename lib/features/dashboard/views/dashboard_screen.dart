@@ -8,6 +8,8 @@ import '../../report_submission/viewmodel/report_viewmodel.dart';
 import '../../report_submission/views/audit_log_screen.dart';
 import '../../report_submission/views/report_form_screen.dart';
 import '../../report_submission/views/review_reports_screen.dart';
+import '../../outbreak_map/views/outbreak_map_screen.dart';
+import '../../notifications/views/red_zone_banner.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -52,6 +54,11 @@ class DashboardScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
 
+          if (isPublic) ...[
+            const RedZoneBanner(),
+            const SizedBox(height: 16),
+          ],
+
           Row(
             children: [
               _StatCard(label: 'Verified cases', value: '${approved.length}', color: AppColors.danger),
@@ -59,7 +66,15 @@ class DashboardScreen extends StatelessWidget {
               _StatCard(label: 'Pending review', value: '$pendingCount', color: AppColors.warning),
             ],
           ),
-          const SizedBox(height: 24),
+
+          OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const OutbreakMapScreen())),
+            icon: const Icon(Icons.map),
+            label: const Text('Outbreak map'),
+          ),
+
+            const SizedBox(height: 24),
 
           const Text('Verified cases by disease',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

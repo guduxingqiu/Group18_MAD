@@ -71,6 +71,26 @@ class ReviewReportsScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(r.symptoms),
                   const SizedBox(height: 8),
+                  if (r.photoBytes != null) ...[
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (_) => Dialog(
+                          child: InteractiveViewer(
+                            child: Image.memory(r.photoBytes!),
+                          ),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.memory(r.photoBytes!,
+                            height: 160, width: double.infinity, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const Text('Tap the photo to enlarge',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  ],
                   Text(r.locationName ??
                       '${r.latitude.toStringAsFixed(4)}, ${r.longitude.toStringAsFixed(4)}'),
                   Text('Reported by: ${r.userId}'

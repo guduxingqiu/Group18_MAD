@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 enum ReportStatus { pending, approved, rejected }
 
 class OutbreakReport {
@@ -6,6 +8,7 @@ class OutbreakReport {
   final String disease;
   final String symptoms;
   final String? photoPath;
+  final Uint8List? photoBytes;
   final double latitude;
   final double longitude;
   final String? locationName;
@@ -19,6 +22,7 @@ class OutbreakReport {
     required this.disease,
     required this.symptoms,
     this.photoPath,
+    this.photoBytes,
     required this.latitude,
     required this.longitude,
     this.locationName,
@@ -64,6 +68,7 @@ class OutbreakReport {
     disease: disease,
     symptoms: symptoms,
     photoPath: photoPath,
+    photoBytes: photoBytes,
     latitude: latitude,
     longitude: longitude,
     locationName: locationName,
