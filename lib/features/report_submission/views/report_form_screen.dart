@@ -6,6 +6,7 @@ import '../../../core/widgets/custom_button.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../models/disease_list.dart';
 import '../viewmodel/report_viewmodel.dart';
+import '../../outbreak_map/views/clinic_list_screen.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -29,17 +30,24 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
     final userId = context.read<AuthViewModel>().currentUser?.id ?? 'unknown';
     final vm = context.read<ReportViewModel>();
+    final lat = vm.latitude;
+    final lng = vm.longitude;
+
     final ok = await vm.submitReport(
       userId: userId,
       symptoms: _symptomsController.text.trim(),
     );
 
     if (!mounted) return;
-    if (ok) {
+    if (ok && lat != null && lng != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Report submitted. Waiting for health officer review.')),
       );
-      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ClinicListScreen(latitude: lat, longitude: lng),
+        ),
+      );
     }
   }
 
