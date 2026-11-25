@@ -8,6 +8,7 @@ class OutbreakReport {
   final String? photoPath;
   final double latitude;
   final double longitude;
+  final String? locationName;
   final bool isAnonymous;
   final ReportStatus status;
   final DateTime createdAt;
@@ -20,6 +21,7 @@ class OutbreakReport {
     this.photoPath,
     required this.latitude,
     required this.longitude,
+    this.locationName,
     this.isAnonymous = false,
     this.status = ReportStatus.pending,
     required this.createdAt,
@@ -33,6 +35,7 @@ class OutbreakReport {
     photoPath: json['photoPath'] as String?,
     latitude: (json['latitude'] as num).toDouble(),
     longitude: (json['longitude'] as num).toDouble(),
+    locationName: json['locationName'] as String?,
     isAnonymous: json['isAnonymous'] as bool? ?? false,
     status: ReportStatus.values.firstWhere(
           (s) => s.name == json['status'],
@@ -49,8 +52,23 @@ class OutbreakReport {
     'photoPath': photoPath,
     'latitude': latitude,
     'longitude': longitude,
+    'locationName': locationName,
     'isAnonymous': isAnonymous,
     'status': status.name,
     'createdAt': createdAt.toIso8601String(),
   };
+
+  OutbreakReport copyWith({ReportStatus? status}) => OutbreakReport(
+    id: id,
+    userId: userId,
+    disease: disease,
+    symptoms: symptoms,
+    photoPath: photoPath,
+    latitude: latitude,
+    longitude: longitude,
+    locationName: locationName,
+    isAnonymous: isAnonymous,
+    status: status ?? this.status,
+    createdAt: createdAt,
+  );
 }

@@ -3,13 +3,15 @@ import 'package:provider/provider.dart';
 import 'core/constants/app_colors.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
 import 'features/auth/views/login_screen.dart';
+import 'features/report_submission/viewmodel/report_viewmodel.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthViewModel()),
         // add each feature's ViewModel here, one line per feature
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => ReportViewModel()),
       ],
       child: const WthApp(),
     ),
