@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../models/health_facility.dart';
 import '../viewmodel/clinic_viewmodel.dart';
+import '../repository/clinic_repository.dart';
 
 class ClinicListScreen extends StatelessWidget {
   final double latitude;
@@ -28,7 +29,8 @@ class ClinicListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ClinicViewModel()..load(latitude, longitude),
+      create: (ctx) =>
+      ClinicViewModel(ctx.read<ClinicRepository>())..load(latitude, longitude),
       child: Scaffold(
         appBar: AppBar(title: const Text('Nearby Clinics & Hospitals')),
         body: Consumer<ClinicViewModel>(
