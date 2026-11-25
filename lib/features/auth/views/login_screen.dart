@@ -5,6 +5,7 @@ import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../dashboard/views/dashboard_screen.dart';
 import '../viewmodel/auth_viewmodel.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -85,6 +86,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                   const SizedBox(height: 24),
                   CustomButton(label: 'Login', isLoading: vm.isLoading, onPressed: _submit),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      context.read<AuthViewModel>().clearError();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                      );
+                    },
+                    child: const Text("Don't have an account? Register"),
+                  ),
                 ],
               ),
             ),
