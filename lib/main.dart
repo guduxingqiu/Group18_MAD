@@ -13,6 +13,8 @@ import 'firebase_options.dart';
 import 'features/auth/repository/firebase_auth_repository.dart';
 import 'features/report_submission/repository/firebase_report_repository.dart';
 import 'features/outbreak_map/repository/firebase_clinic_repository.dart';
+import 'features/auth/repository/firebase_user_admin_repository.dart';
+import 'features/auth/repository/user_admin_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +31,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AuthViewModel(authRepo)),
         ChangeNotifierProvider(create: (_) => ReportViewModel(reportRepo)),
         ChangeNotifierProvider(create: (_) => ProximityViewModel()),
+        Provider<UserAdminRepository>.value(value: FirebaseUserAdminRepository()),
       ],
       child: const WthApp(),
     ),

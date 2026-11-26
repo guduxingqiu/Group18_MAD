@@ -22,9 +22,12 @@ class AuditLogScreen extends StatelessWidget {
             leading: Icon(switch (l.action) {
               'approved' => Icons.check_circle,
               'rejected' => Icons.cancel,
+              'role_changed' => Icons.manage_accounts,
               _ => Icons.upload_file,
             }),
-            title: Text('Report ${l.reportId} ${l.action}'),
+            title: Text(l.action == 'role_changed'
+                ? 'Role changed for user ${l.reportId}'
+                : 'Report ${l.reportId} ${l.action}'),
             subtitle: Text('By ${l.performedBy}  •  ${l.timestamp}'
                 '${l.reason != null ? '\nReason: ${l.reason}' : ''}'),
             isThreeLine: l.reason != null,

@@ -10,7 +10,7 @@ import '../../report_submission/views/report_form_screen.dart';
 import '../../report_submission/views/review_reports_screen.dart';
 import '../../outbreak_map/views/outbreak_map_screen.dart';
 import '../../notifications/views/red_zone_banner.dart';
-import '../../outbreak_map/repository/clinic_seed.dart';
+import '../../auth/views/manage_users_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -24,11 +24,7 @@ class DashboardScreen extends StatelessWidget {
     final pendingCount = reportVm.pendingReports.length;
 
     // Approved cases per disease
-    final perDisease = <String, int>{};
-    for (final r in approved) {
-      perDisease[r.disease] = (perDisease[r.disease] ?? 0) + 1;
-    }
-
+    final perDisease = reportVm.approvedByDisease;
     final isOfficer = user?.role == UserRole.healthOfficer;
     final isAdmin = user?.role == UserRole.admin;
     final isPublic = user?.role == UserRole.public;
@@ -131,6 +127,15 @@ class DashboardScreen extends StatelessWidget {
                 icon: const Icon(Icons.history),
                 label: const Text('View audit trail'),
               ),
+              if (isAdmin) ...[
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ManageUsersScreen())),
+                    icon: const Icon(Icons.manage_accounts),
+                    label: const Text('Manage users'),
+                  ),
+                const SizedBox(height: 8),
+              ],
             ],
           ],
         ),

@@ -48,7 +48,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             : 'Report submitted. Waiting for health officer review.'),
         ),
       );
-      
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => ClinicListScreen(latitude: lat, longitude: lng),
@@ -73,6 +73,20 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'This app does not give medical advice or diagnoses. '
+                          'Reports are reviewed by health officers. '
+                          'In an emergency, call 999.',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
                   DropdownButtonFormField<String>(
                     initialValue: vm.selectedDisease,
                     decoration: const InputDecoration(

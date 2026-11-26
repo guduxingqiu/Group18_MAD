@@ -20,6 +20,13 @@ class ReportViewModel extends ChangeNotifier {
   List<OutbreakReport> _reports = [];
   List<AuditLog> _auditLogs = [];
   List<OutbreakReport> _approved = [];
+  Map<String, int> get approvedByDisease {
+    final counts = <String, int>{};
+    for (final r in _approved) {
+      counts[r.disease] = (counts[r.disease] ?? 0) + 1;
+    }
+    return counts;
+  }
 
   // Form state
   final PendingReportQueue _queue = PendingReportQueue();
