@@ -39,10 +39,16 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     );
 
     if (!mounted) return;
+    final queued = vm.lastSubmitQueued;
     if (ok && lat != null && lng != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Report submitted. Waiting for health officer review.')),
+        SnackBar(
+          content: Text(queued
+            ? 'No internet. Your report is saved on this phone and will be sent automatically.'
+            : 'Report submitted. Waiting for health officer review.'),
+        ),
       );
+      
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => ClinicListScreen(latitude: lat, longitude: lng),

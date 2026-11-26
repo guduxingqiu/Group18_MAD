@@ -50,7 +50,11 @@ class DashboardScreen extends StatelessWidget {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () => context.read<ReportViewModel>().loadAll(),
+        onRefresh: () async {
+          final vm = context.read<ReportViewModel>();
+          await vm.syncPending();
+          await vm.loadAll();
+        },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
@@ -61,6 +65,26 @@ class DashboardScreen extends StatelessWidget {
 
             if (isPublic) ...[
               const RedZoneBanner(),
+              if (isPublic && reportVm.pendingCount > 0) ...[
+                Card(
+                  color: AppColors.warning.withValues(alpha: 0.15),
+                  child: ListTile(
+                    leading: const Icon(Icons.cloud_off),
+                    title: Text('${reportVm.pendingCount} report(s) waiting to be sent'),
+                    subtitle: const Text('Saved on this phone. They are sent when you are online.'),
+                    trailing: reportVm.isSyncing
+                        ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                        : TextButton(
+                      onPressed: reportVm.syncPending,
+                      child: const Text('Send now'),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               const SizedBox(height: 16),
             ],
 

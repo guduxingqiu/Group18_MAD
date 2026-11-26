@@ -14,7 +14,11 @@ class MockReportRepository implements ReportRepository {
   Future<List<AuditLog>> fetchAuditLogs() async => List.of(_logs);
 
   @override
+  String newReportId() => 'r${DateTime.now().microsecondsSinceEpoch}';
+
+  @override
   Future<OutbreakReport> submitReport({
+    String? reportId,
     required String userId,
     required String disease,
     required String symptoms,
@@ -29,7 +33,7 @@ class MockReportRepository implements ReportRepository {
 
     final now = DateTime.now();
     final report = OutbreakReport(
-      id: 'r${_reports.length + 1}',
+      id: reportId ?? newReportId(),
       userId: userId, // always stored, even when anonymous
       disease: disease,
       symptoms: symptoms,
