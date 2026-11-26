@@ -18,6 +18,7 @@ class ReportViewModel extends ChangeNotifier {
   // Data cached from the repository
   List<OutbreakReport> _reports = [];
   List<AuditLog> _auditLogs = [];
+  List<OutbreakReport> _approved = [];
 
   // Form state
   String? selectedDisease;
@@ -36,16 +37,28 @@ class ReportViewModel extends ChangeNotifier {
   List<AuditLog> get auditLogs => List.unmodifiable(_auditLogs);
   List<OutbreakReport> get pendingReports =>
       _reports.where((r) => r.status == ReportStatus.pending).toList();
-  List<OutbreakReport> get approvedReports =>
-      _reports.where((r) => r.status == ReportStatus.approved).toList();
+  List<OutbreakReport> get approvedReports => _approved;
 
   Future<void> loadAll() async {
     try {
       _reports = await _repo.fetchReports();
+      _approved = await _repo.fetchApprovedCases();
       _auditLogs = await _repo.fetchAuditLogs();
-    } catch (e) {
+      errorMessage = null;
+    } on ReportException catch (e) {
+      errorMessage = e.message;
+    } catch (_) {
       errorMessage = 'Could not load reports';
     }
+    notifyListeners();
+  }
+
+  /// Call on logout so the next person on this device never sees old data.
+  void clear() {
+    _reports = [];
+    _approved = [];
+    _auditLogs = [];
+    errorMessage = null;
     notifyListeners();
   }
 
@@ -63,6 +76,9 @@ class ReportViewModel extends ChangeNotifier {
         reason: reason,
       );
       await loadAll();
+    } on ReportException catch (e) {
+      errorMessage = e.message;
+      notifyListeners();
     } catch (e) {
       errorMessage = 'Could not update the report';
       notifyListeners();
@@ -81,7 +97,12 @@ class ReportViewModel extends ChangeNotifier {
 
   Future<void> pickPhoto(ImageSource source) async {
     try {
-      final file = await _picker.pickImage(source: source, imageQuality: 70);
+      final file = await _picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 60,
+      );
       if (file == null) return;
       photoBytes = await file.readAsBytes();
       photoPath = file.path;
@@ -180,6 +201,12 @@ class ReportViewModel extends ChangeNotifier {
       isSubmitting = false;
       notifyListeners();
       return true;
+    } on ReportException catch (e) {
+      errorMessage = e.message;
+      // (in submitReport also:)
+      isSubmitting = false;
+      notifyListeners();
+      return false;   // submitReport only; reviewReport has no return value
     } catch (e) {
       errorMessage = 'Could not submit the report. Please try again.';
       isSubmitting = false;

@@ -5,6 +5,7 @@ import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../dashboard/views/dashboard_screen.dart';
 import '../viewmodel/auth_viewmodel.dart';
+import '../../report_submission/viewmodel/report_viewmodel.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -41,6 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (!mounted) return;
     if (success) {
+      context.read<ReportViewModel>().loadAll();
       // Clear the whole stack (login + register) and go to the dashboard
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const DashboardScreen()),
