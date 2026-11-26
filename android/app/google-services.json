@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "217122012570",
+    "project_id": "what-the-health-ee676",
+    "storage_bucket": "what-the-health-ee676.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:217122012570:android:54f6b0305746d832638e23",
+        "android_client_info": {
+          "package_name": "com.example.what_the_health"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCIx0-Hx234o6qMNZxl5YtiOk0NewdOSk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

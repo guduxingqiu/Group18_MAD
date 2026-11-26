@@ -24,8 +24,7 @@ class ClinicViewModel extends ChangeNotifier {
       facilities = results.take(10).toList();
     } catch (e) {
       debugPrint('Clinic lookup failed: $e');
-      facilities = _demoData(lat, lng); // remove once your own database is used
-      isDemoData = true;
+      errorMessage = 'Could not load nearby clinics. Please try again.';
     }
 
     isLoading = false;

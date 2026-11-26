@@ -6,6 +6,7 @@ import '../../../core/widgets/custom_text_field.dart';
 import '../../dashboard/views/dashboard_screen.dart';
 import '../viewmodel/auth_viewmodel.dart';
 import 'register_screen.dart';
+import '../../report_submission/viewmodel/report_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,6 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
     if (success) {
+      context.read<ReportViewModel>().loadAll();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const DashboardScreen()),
       );

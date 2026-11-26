@@ -76,4 +76,8 @@ class MockReportRepository implements ReportRepository {
       timestamp: DateTime.now(),
     ));
   }
+
+  @override
+  Future<List<OutbreakReport>> fetchApprovedCases() async =>
+      _reports.where((r) => r.status == ReportStatus.approved).toList();
 }

@@ -2,21 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/constants/app_colors.dart';
 import 'features/auth/repository/auth_repository.dart';
-import 'features/auth/repository/mock_auth_repository.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
 import 'features/auth/views/login_screen.dart';
 import 'features/notifications/viewmodel/proximity_viewmodel.dart';
 import 'features/outbreak_map/repository/clinic_repository.dart';
-import 'features/outbreak_map/repository/overpass_clinic_repository.dart';
-import 'features/report_submission/repository/mock_report_repository.dart';
 import 'features/report_submission/repository/report_repository.dart';
 import 'features/report_submission/viewmodel/report_viewmodel.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'features/auth/repository/firebase_auth_repository.dart';
+import 'features/report_submission/repository/firebase_report_repository.dart';
+import 'features/outbreak_map/repository/firebase_clinic_repository.dart';
 
-void main() {
-  // To use the real database later, swap these three lines only.
-  final AuthRepository authRepo = MockAuthRepository();
-  final ReportRepository reportRepo = MockReportRepository();
-  final ClinicRepository clinicRepo = OverpassClinicRepository();
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  final AuthRepository authRepo = FirebaseAuthRepository(); // was MockAuthRepository()
+  final ReportRepository reportRepo = FirebaseReportRepository(); // was MockReportRepository()
+  final ClinicRepository clinicRepo = FirebaseClinicRepository(); // was OverpassClinicRepository()
 
   runApp(
     MultiProvider(

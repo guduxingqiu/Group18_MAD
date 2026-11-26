@@ -10,6 +10,7 @@ import '../../report_submission/views/report_form_screen.dart';
 import '../../report_submission/views/review_reports_screen.dart';
 import '../../outbreak_map/views/outbreak_map_screen.dart';
 import '../../notifications/views/red_zone_banner.dart';
+import '../../outbreak_map/repository/clinic_seed.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -39,6 +40,7 @@ class DashboardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
+              context.read<ReportViewModel>().clear();
               context.read<AuthViewModel>().logout();
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -47,63 +49,67 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Welcome, ${user?.name ?? 'Guest'}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-
-          if (isPublic) ...[
-            const RedZoneBanner(),
+      body: RefreshIndicator(
+        onRefresh: () => context.read<ReportViewModel>().loadAll(),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text('Welcome, ${user?.name ?? 'Guest'}',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-          ],
 
-          Row(
-            children: [
-              _StatCard(label: 'Verified cases', value: '${approved.length}', color: AppColors.danger),
-              const SizedBox(width: 12),
-              _StatCard(label: 'Pending review', value: '$pendingCount', color: AppColors.warning),
+            if (isPublic) ...[
+              const RedZoneBanner(),
+              const SizedBox(height: 16),
             ],
-          ),
 
-          OutlinedButton.icon(
-            onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const OutbreakMapScreen())),
-            icon: const Icon(Icons.map),
-            label: const Text('Outbreak map'),
-          ),
+            Row(
+              children: [
+                _StatCard(label: 'Verified cases', value: '${approved.length}', color: AppColors.danger),
+                const SizedBox(width: 12),
+                _StatCard(label: 'Pending review', value: '$pendingCount', color: AppColors.warning),
+              ],
+            ),
 
-            const SizedBox(height: 24),
-
-          const Text('Verified cases by disease',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          if (perDisease.isEmpty)
-            const Text('No verified cases yet')
-          else
-            ...perDisease.entries.map((e) => Card(
-              child: ListTile(title: Text(e.key), trailing: Text('${e.value}')),
-            )),
-
-          if (isOfficer || isAdmin) ...[
-            const SizedBox(height: 24),
-            if (isOfficer)
-              FilledButton.icon(
-                onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ReviewReportsScreen())),
-                icon: const Icon(Icons.fact_check),
-                label: Text('Review pending reports ($pendingCount)'),
-              ),
-            const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const AuditLogScreen())),
-              icon: const Icon(Icons.history),
-              label: const Text('View audit trail'),
+                  MaterialPageRoute(builder: (_) => const OutbreakMapScreen())),
+              icon: const Icon(Icons.map),
+              label: const Text('Outbreak map'),
             ),
+
+              const SizedBox(height: 24),
+
+            const Text('Verified cases by disease',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            if (perDisease.isEmpty)
+              const Text('No verified cases yet')
+            else
+              ...perDisease.entries.map((e) => Card(
+                child: ListTile(title: Text(e.key), trailing: Text('${e.value}')),
+              )),
+
+            if (isOfficer || isAdmin) ...[
+              const SizedBox(height: 24),
+              if (isOfficer)
+                FilledButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ReviewReportsScreen())),
+                  icon: const Icon(Icons.fact_check),
+                  label: Text('Review pending reports ($pendingCount)'),
+                ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AuditLogScreen())),
+                icon: const Icon(Icons.history),
+                label: const Text('View audit trail'),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
       floatingActionButton: isPublic
           ? FloatingActionButton.extended(
