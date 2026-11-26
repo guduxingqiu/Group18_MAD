@@ -6,6 +6,7 @@ import '../../../core/utils/area_utils.dart';
 import '../models/audit_log.dart';
 import '../models/outbreak_report.dart';
 import 'report_repository.dart';
+import 'dart:async';
 
 class FirebaseReportRepository implements ReportRepository {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -14,6 +15,10 @@ class FirebaseReportRepository implements ReportRepository {
   // Photos are stored inside the report document. Firestore allows 1 MiB per
   // document, and base64 adds about 33%, so keep the raw photo small.
   static const _maxPhotoBytes = 400 * 1024;
+  static const _sendTimeout = Duration(seconds: 12);
+
+  @override
+  String newReportId() => _db.collection('reports').doc().id;
 
   Future<String> _role() async {
     final uid = _auth.currentUser?.uid;
@@ -27,7 +32,7 @@ class FirebaseReportRepository implements ReportRepository {
       case 'permission-denied':
         return const ReportException('You do not have permission to do that');
       case 'unavailable':
-        return const ReportException('No internet connection');
+        return const ReportOfflineException();
       default:
         return ReportException('Server error (${e.code})');
     }
@@ -135,6 +140,7 @@ class FirebaseReportRepository implements ReportRepository {
 
   @override
   Future<OutbreakReport> submitReport({
+    String? reportId,
     required String userId,
     required String disease,
     required String symptoms,
@@ -150,8 +156,27 @@ class FirebaseReportRepository implements ReportRepository {
     }
 
     try {
-      final reportRef = _db.collection('reports').doc();
-      final logRef = _db.collection('audit_logs').doc();
+      final reportRef = _db.collection('reports').doc(reportId ?? newReportId());
+      final logRef = _db.collection('audit_logs').doc('submitted-${reportRef.id}');
+
+      final result = OutbreakReport(
+        id: reportRef.id,
+        userId: userId,
+        disease: disease,
+        symptoms: symptoms,
+        photoBytes: photoBytes,
+        latitude: latitude,
+        longitude: longitude,
+        locationName: locationName,
+        isAnonymous: isAnonymous,
+        createdAt: DateTime.now(),
+      );
+
+      // Retry safety: an earlier attempt may have reached the server already.
+      if (reportId != null) {
+        final existing = await reportRef.get().timeout(_sendTimeout);
+        if (existing.exists) return result;
+      }
 
       final batch = _db.batch();
       batch.set(reportRef, {
@@ -172,20 +197,11 @@ class FirebaseReportRepository implements ReportRepository {
         'performedBy': userId,
         'timestamp': FieldValue.serverTimestamp(),
       });
-      await batch.commit();
+      await batch.commit().timeout(_sendTimeout);
 
-      return OutbreakReport(
-        id: reportRef.id,
-        userId: userId,
-        disease: disease,
-        symptoms: symptoms,
-        photoBytes: photoBytes,
-        latitude: latitude,
-        longitude: longitude,
-        locationName: locationName,
-        isAnonymous: isAnonymous,
-        createdAt: DateTime.now(),
-      );
+      return result;
+    } on TimeoutException {
+      throw const ReportOfflineException();
     } on FirebaseException catch (e) {
       throw _friendly(e);
     }
@@ -237,7 +253,10 @@ class FirebaseReportRepository implements ReportRepository {
         });
       }
 
-      await batch.commit();
+      await batch.commit().timeout(_sendTimeout);
+    } on TimeoutException {
+      throw const ReportException(
+          'No connection. The decision may still be sent once you are online. Refresh to check.');
     } on FirebaseException catch (e) {
       throw _friendly(e);
     }

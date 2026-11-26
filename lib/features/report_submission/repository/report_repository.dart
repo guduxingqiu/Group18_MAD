@@ -7,13 +7,26 @@ class ReportException implements Exception {
   const ReportException(this.message);
 }
 
+/// Thrown when the report could not be sent because there is no connection.
+class ReportOfflineException extends ReportException {
+  const ReportOfflineException() : super('No internet connection');
+}
+
 abstract class ReportRepository {
   Future<List<OutbreakReport>> fetchReports();
   Future<List<AuditLog>> fetchAuditLogs();
 
-  /// The repository also records the "submitted" audit entry.
-  /// With a real backend the SERVER should write audit entries, so they can't be skipped or edited.
+  /// Verified cases for the map, dashboard and Red Zone check.
+  /// Officers get exact reports; everyone else gets area-level cases only.
+  Future<List<OutbreakReport>> fetchApprovedCases();
+
+  /// A new ID that can be created offline and reused when retrying.
+  String newReportId();
+
+  /// Sends a report. Passing the same [reportId] again is safe: a retry never
+  /// creates a duplicate.
   Future<OutbreakReport> submitReport({
+    String? reportId,
     required String userId,
     required String disease,
     required String symptoms,
@@ -32,8 +45,4 @@ abstract class ReportRepository {
     required bool approve,
     String? reason,
   });
-
-  /// Verified cases for the map, dashboard and Red Zone check.
-  /// Officers get exact reports; everyone else gets area-level cases only.
-  Future<List<OutbreakReport>> fetchApprovedCases();
 }

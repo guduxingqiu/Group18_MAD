@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
     if (success) {
-      context.read<ReportViewModel>().loadAll();
+      context.read<ReportViewModel>().onLogin(vm.currentUser!.id);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const DashboardScreen()),
       );

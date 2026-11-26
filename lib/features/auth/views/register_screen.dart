@@ -42,7 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (!mounted) return;
     if (success) {
-      context.read<ReportViewModel>().loadAll();
+      context.read<ReportViewModel>().onLogin(vm.currentUser!.id);
       // Clear the whole stack (login + register) and go to the dashboard
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const DashboardScreen()),

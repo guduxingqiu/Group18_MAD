@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/audit_log.dart';
 import '../models/outbreak_report.dart';
 import '../repository/report_repository.dart';
+import '../../../core/database/pending_report_queue.dart';
 
 class ReportViewModel extends ChangeNotifier {
   final ReportRepository _repo;
@@ -21,6 +22,11 @@ class ReportViewModel extends ChangeNotifier {
   List<OutbreakReport> _approved = [];
 
   // Form state
+  final PendingReportQueue _queue = PendingReportQueue();
+  String? _userId;
+  int pendingCount = 0;
+  bool isSyncing = false;
+  bool lastSubmitQueued = false;
   String? selectedDisease;
   bool isAnonymous = false;
   Uint8List? photoBytes;
@@ -39,6 +45,75 @@ class ReportViewModel extends ChangeNotifier {
       _reports.where((r) => r.status == ReportStatus.pending).toList();
   List<OutbreakReport> get approvedReports => _approved;
 
+  /// Call after login or register.
+  Future<void> onLogin(String userId) async {
+    _userId = userId;
+    await _refreshPendingCount();
+    await syncPending();
+    await loadAll();
+  }
+
+  Future<void> _refreshPendingCount() async {
+    pendingCount = _userId == null ? 0 : (await _queue.forUser(_userId!)).length;
+    notifyListeners();
+  }
+
+  /// Sends reports that were saved while offline.
+  Future<void> syncPending() async {
+    final uid = _userId;
+    if (uid == null || isSyncing) return;
+
+    isSyncing = true;
+    notifyListeners();
+
+    var sent = 0;
+    try {
+      for (final item in await _queue.forUser(uid)) {
+        try {
+          await _repo.submitReport(
+            reportId: item.id,
+            userId: item.userId,
+            disease: item.disease,
+            symptoms: item.symptoms,
+            photoBytes: item.photoBytes,
+            latitude: item.latitude,
+            longitude: item.longitude,
+            locationName: item.locationName,
+            isAnonymous: item.isAnonymous,
+          );
+          await _queue.remove(item.id);
+          sent++;
+        } on ReportOfflineException {
+          break; // still offline, try again later
+        } on ReportException catch (e) {
+          errorMessage = e.message; // keep it queued and try the next one
+        }
+      }
+    } catch (_) {
+      // ignore unexpected storage errors; the reports stay queued
+    }
+
+    isSyncing = false;
+    await _refreshPendingCount();
+    if (sent > 0) await loadAll();
+  }
+
+  void _finishSubmit() {
+    _resetForm();
+    isSubmitting = false;
+    notifyListeners();
+  }
+
+  void _resetForm() {
+    selectedDisease = null;
+    isAnonymous = false;
+    photoBytes = null;
+    photoPath = null;
+    latitude = null;
+    longitude = null;
+    locationName = null;
+  }
+
   Future<void> loadAll() async {
     try {
       _reports = await _repo.fetchReports();
@@ -55,6 +130,8 @@ class ReportViewModel extends ChangeNotifier {
 
   /// Call on logout so the next person on this device never sees old data.
   void clear() {
+    _userId = null;
+    pendingCount = 0;
     _reports = [];
     _approved = [];
     _auditLogs = [];
@@ -182,10 +259,14 @@ class ReportViewModel extends ChangeNotifier {
 
     isSubmitting = true;
     errorMessage = null;
+    lastSubmitQueued = false;
     notifyListeners();
+
+    final id = _repo.newReportId(); // created first so a retry uses the same ID
 
     try {
       await _repo.submitReport(
+        reportId: id,
         userId: userId,
         disease: selectedDisease!,
         symptoms: symptoms,
@@ -197,31 +278,42 @@ class ReportViewModel extends ChangeNotifier {
         isAnonymous: isAnonymous,
       );
       await loadAll();
-      _resetForm();
-      isSubmitting = false;
-      notifyListeners();
+      _finishSubmit();
+      syncPending(); // we are online, so also send older unsent reports
+      return true;
+    } on ReportOfflineException {
+      final saved = await _queue.add(PendingReport(
+        id: id,
+        userId: userId,
+        disease: selectedDisease!,
+        symptoms: symptoms,
+        photoBytes: photoBytes,
+        latitude: latitude!,
+        longitude: longitude!,
+        locationName: locationName,
+        isAnonymous: isAnonymous,
+      ));
+      if (!saved) {
+        errorMessage =
+        'You have too many unsent reports. Connect to the internet so they can be sent first.';
+        isSubmitting = false;
+        notifyListeners();
+        return false;
+      }
+      lastSubmitQueued = true;
+      await _refreshPendingCount();
+      _finishSubmit();
       return true;
     } on ReportException catch (e) {
       errorMessage = e.message;
-      // (in submitReport also:)
       isSubmitting = false;
       notifyListeners();
-      return false;   // submitReport only; reviewReport has no return value
-    } catch (e) {
+      return false;
+    } catch (_) {
       errorMessage = 'Could not submit the report. Please try again.';
       isSubmitting = false;
       notifyListeners();
       return false;
     }
-  }
-
-  void _resetForm() {
-    selectedDisease = null;
-    isAnonymous = false;
-    photoBytes = null;
-    photoPath = null;
-    latitude = null;
-    longitude = null;
-    locationName = null;
   }
 }
